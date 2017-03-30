@@ -13,8 +13,8 @@ npm install cometd-nodejs-client
 ### Usage
 
 ```javascript
-// Obtain the adapter.
-require('cometd-nodejs-client');
+// Run the adapter code.
+require('cometd-nodejs-client').adapt();
 
 // Your normal CometD client application here.
 ```
