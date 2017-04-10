@@ -5,7 +5,7 @@
   "keywords": ["node", "nodejs", "cometd"],
   "homepage": "https://cometd.org",
   "bugs": {
-    "url": "https://bugs.cometd.org"
+    "url": "https://github.com/cometd/cometd-nodejs-client/issues"
   },
   "license": "Apache-2.0",
   "main": "cometd-nodejs-client.js",
