@@ -81,17 +81,13 @@ module.exports = {
                         }
                     });
                 });
-                _request.on('abort', function() {
-                    self.readyState = window.XMLHttpRequest.DONE;
-                    if (self.onerror) {
-                        self.onerror();
-                    }
-                });
-                _request.on('aborted', function() {
-                    self.readyState = window.XMLHttpRequest.DONE;
-                    if (self.onerror) {
-                        self.onerror();
-                    }
+                ['abort', 'aborted', 'error'].forEach(function(event) {
+                    _request.on(event, function() {
+                        self.readyState = window.XMLHttpRequest.DONE;
+                        if (self.onerror) {
+                            self.onerror();
+                        }
+                    });
                 });
                 if (data) {
                     _request.write(data);
