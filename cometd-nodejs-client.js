@@ -40,16 +40,20 @@ module.exports = {
             };
 
             this.send = function(data) {
-                var cookies = '';
-                for (var i = 0; i < _cookies.length; ++i) {
-                    if (i > 0) {
-                        cookies += '; ';
+                var list = _cookies[_config.hostname];
+                if (list) {
+                    var cookies = '';
+                    for (var i = 0; i < list.length; ++i) {
+                        if (i > 0) {
+                            cookies += '; ';
+                        }
+                        cookies += list[i];
                     }
-                    cookies += _cookies[i];
+                    if (cookies) {
+                        _config.headers['Cookie'] = cookies;
+                    }
                 }
-                if (cookies) {
-                    _config.headers['Cookie'] = cookies;
-                }
+
                 var self = this;
                 _request = http.request(_config, function(response) {
                     var success = false;
@@ -58,13 +62,21 @@ module.exports = {
                     self.readyState = window.XMLHttpRequest.HEADERS_RECEIVED;
                     var headers = response.headers;
                     for (var name in headers) {
-                        if (/^set-cookie$/i.test(name)) {
-                            var header = headers[name];
-                            for (var i = 0; i < header.length; ++i) {
-                                var whole = header[i];
-                                var parts = whole.split(';');
-                                var cookie = parts[0];
-                                _cookies.push(cookie);
+                        if (headers.hasOwnProperty(name)) {
+                            if (/^set-cookie$/i.test(name)) {
+                                var header = headers[name];
+                                for (var i = 0; i < header.length; ++i) {
+                                    var whole = header[i];
+                                    var parts = whole.split(';');
+                                    var cookie = parts[0];
+
+                                    var host = _config.hostname;
+                                    var list = _cookies[host];
+                                    if (list === undefined) {
+                                        _cookies[host] = list = [];
+                                    }
+                                    list.push(cookie);
+                                }
                             }
                         }
                     }

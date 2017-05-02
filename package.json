@@ -12,5 +12,11 @@
   "repository": {
     "type": "git",
     "url": "https://github.com/cometd/cometd-nodejs-client.git"
+  },
+  "scripts": {
+    "test": "mocha"
+  },
+  "devDependencies": {
+    "mocha": "*"
   }
 }
