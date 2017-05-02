@@ -40,10 +40,17 @@ module.exports = {
             };
 
             this.send = function(data) {
-                var self = this;
+                var cookies = '';
                 for (var i = 0; i < _cookies.length; ++i) {
-                    _config.headers['Cookie'] = _cookies[i];
+                    if (i > 0) {
+                        cookies += '; ';
+                    }
+                    cookies += _cookies[i];
                 }
+                if (cookies) {
+                    _config.headers['Cookie'] = cookies;
+                }
+                var self = this;
                 _request = http.request(_config, function(response) {
                     var success = false;
                     self.status = response.statusCode;
