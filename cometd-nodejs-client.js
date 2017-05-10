@@ -15,7 +15,7 @@ module.exports = {
         var _agent = new http.Agent({
             keepAlive: true
         });
-        var _cookies = [];
+        var _cookieStore = {};
 
         // Bare minimum XMLHttpRequest implementation that works with CometD.
         window.XMLHttpRequest = function() {
@@ -40,7 +40,11 @@ module.exports = {
             };
 
             this.send = function(data) {
-                var list = _cookies[_config.hostname];
+                var cookieStore = this.context && this.context.cookieStore;
+                if (!cookieStore) {
+                    cookieStore = _cookieStore;
+                }
+                var list = cookieStore[_config.hostname];
                 if (list) {
                     var cookies = '';
                     for (var i = 0; i < list.length; ++i) {
@@ -71,9 +75,9 @@ module.exports = {
                                     var cookie = parts[0];
 
                                     var host = _config.hostname;
-                                    var list = _cookies[host];
+                                    var list = cookieStore[host];
                                     if (list === undefined) {
-                                        _cookies[host] = list = [];
+                                        cookieStore[host] = list = [];
                                     }
                                     list.push(cookie);
                                 }
