@@ -116,9 +116,11 @@ module.exports = {
                 ['abort', 'aborted', 'error'].forEach(function(event) {
                     _request.on(event, function(x) {
                         self.readyState = window.XMLHttpRequest.DONE;
-                        var error = x.message;
-                        if (error) {
-                            self.statusText = error;
+                        if (x) {
+                            var error = x.message;
+                            if (error) {
+                                self.statusText = error;
+                            }
                         }
                         if (self.onerror) {
                             self.onerror(x);
