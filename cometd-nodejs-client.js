@@ -52,14 +52,16 @@ module.exports = {
                 if (!cookieStore) {
                     cookieStore = _cookieStore;
                 }
-                var list = cookieStore[_config.hostname];
-                if (list) {
+                var jar = cookieStore[_config.hostname];
+                if (jar) {
                     var cookies = '';
-                    for (var i = 0; i < list.length; ++i) {
-                        if (i > 0) {
-                            cookies += '; ';
+                    for (var name in jar) {
+                        if (jar.hasOwnProperty(name)) {
+                            if (cookies) {
+                                cookies += '; ';
+                            }
+                            cookies += jar[name];
                         }
-                        cookies += list[i];
                     }
                     if (cookies) {
                         _config.headers['Cookie'] = cookies;
@@ -84,11 +86,15 @@ module.exports = {
                                     var cookie = parts[0];
 
                                     var host = _config.hostname;
-                                    var list = cookieStore[host];
-                                    if (list === undefined) {
-                                        cookieStore[host] = list = [];
+                                    var jar = cookieStore[host];
+                                    if (jar === undefined) {
+                                        cookieStore[host] = jar = {};
                                     }
-                                    list.push(cookie);
+
+                                    var equal = cookie.indexOf('=');
+                                    if (equal > 0) {
+                                        jar[cookie.substring(0, equal)] = cookie;
+                                    }
                                 }
                             }
                         }

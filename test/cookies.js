@@ -144,4 +144,43 @@ describe('cookies', function() {
             xhrA1.send();
         });
     });
+
+    it('handles cookie sent multiple times', function(done) {
+        var cookieName = 'a';
+        var cookieValue = 'b';
+        var cookie = cookieName + '=' + cookieValue;
+        _server = http.createServer(function(request, response) {
+            if (/\/verify$/.test(request.url)) {
+                assert.strictEqual(request.headers['cookie'], cookie);
+                response.end();
+            } else {
+                response.setHeader('Set-Cookie', cookie);
+                response.end();
+            }
+        });
+        _server.listen(0, 'localhost', function() {
+            var port = _server.address().port;
+            console.log('listening on localhost:' + port);
+
+            var xhr1 = new window.XMLHttpRequest();
+            xhr1.open('GET', 'http://localhost:' + port + '/1');
+            xhr1.onload = function() {
+                assert.strictEqual(xhr1.status, 200);
+                var xhr2 = new window.XMLHttpRequest();
+                xhr2.open('GET', 'http://localhost:' + port + '/2');
+                xhr2.onload = function() {
+                    assert.strictEqual(xhr2.status, 200);
+                    var xhr3 = new window.XMLHttpRequest();
+                    xhr3.open('GET', 'http://localhost:' + port + '/verify');
+                    xhr3.onload = function() {
+                        assert.strictEqual(xhr1.status, 200);
+                        done();
+                    };
+                    xhr3.send();
+                };
+                xhr2.send();
+            };
+            xhr1.send();
+        });
+    });
 });
