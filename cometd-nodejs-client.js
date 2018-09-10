@@ -154,5 +154,8 @@ module.exports = {
         window.XMLHttpRequest.HEADERS_RECEIVED = 2;
         window.XMLHttpRequest.LOADING = 3;
         window.XMLHttpRequest.DONE = 4;
+
+        // WebSocket support
+        window.WebSocket = require('ws');
     }
 };
