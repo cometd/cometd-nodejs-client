@@ -19,7 +19,7 @@ module.exports = {
         var _agents = new https.Agent({
             keepAlive: true
         });
-        var _cookieStore = {};
+        var _globalCookies = {};
 
         function _secure(uri) {
             return /^https/i.test(uri.protocol);
@@ -27,8 +27,41 @@ module.exports = {
 
         // Bare minimum XMLHttpRequest implementation that works with CometD.
         window.XMLHttpRequest = function() {
+            var _localCookies = {};
             var _config;
             var _request;
+
+            function _storeCookie(cookieStore, value) {
+                var host = _config.hostname;
+                var jar = cookieStore[host];
+                if (jar === undefined) {
+                    cookieStore[host] = jar = {};
+                }
+                var cookies = value.split(';');
+                for (var i = 0; i < cookies.length; ++i) {
+                    var cookie = cookies[i].trim();
+                    var equal = cookie.indexOf('=');
+                    if (equal > 0) {
+                        jar[cookie.substring(0, equal)] = cookie;
+                    }
+                }
+            }
+
+            function _concatCookies(cookieStore) {
+                var cookies = '';
+                var jar = cookieStore[_config.hostname];
+                if (jar) {
+                    for (var name in jar) {
+                        if (jar.hasOwnProperty(name)) {
+                            if (cookies) {
+                                cookies += '; ';
+                            }
+                            cookies += jar[name];
+                        }
+                    }
+                }
+                return cookies;
+            }
 
             this.status = 0;
             this.statusText = '';
@@ -44,28 +77,24 @@ module.exports = {
             };
 
             this.setRequestHeader = function(name, value) {
-                _config.headers[name] = value;
+                if (/^cookie$/i.test(name)) {
+                    _storeCookie(_localCookies, value)
+                } else {
+                    _config.headers[name] = value;
+                }
             };
 
             this.send = function(data) {
-                var cookieStore = this.context && this.context.cookieStore;
-                if (!cookieStore) {
-                    cookieStore = _cookieStore;
+                var globalCookies = this.context && this.context.cookieStore;
+                if (!globalCookies) {
+                    globalCookies = _globalCookies;
                 }
-                var jar = cookieStore[_config.hostname];
-                if (jar) {
-                    var cookies = '';
-                    for (var name in jar) {
-                        if (jar.hasOwnProperty(name)) {
-                            if (cookies) {
-                                cookies += '; ';
-                            }
-                            cookies += jar[name];
-                        }
-                    }
-                    if (cookies) {
-                        _config.headers['Cookie'] = cookies;
-                    }
+                var cookies1 = _concatCookies(globalCookies);
+                var cookies2 = _concatCookies(_localCookies);
+                var delim = (cookies1 && cookies2) ? '; ' : '';
+                var cookies = cookies1 + delim + cookies2;
+                if (cookies) {
+                    _config.headers['Cookie'] = cookies;
                 }
 
                 var self = this;
@@ -84,17 +113,7 @@ module.exports = {
                                     var whole = header[i];
                                     var parts = whole.split(';');
                                     var cookie = parts[0];
-
-                                    var host = _config.hostname;
-                                    var jar = cookieStore[host];
-                                    if (jar === undefined) {
-                                        cookieStore[host] = jar = {};
-                                    }
-
-                                    var equal = cookie.indexOf('=');
-                                    if (equal > 0) {
-                                        jar[cookie.substring(0, equal)] = cookie;
-                                    }
+                                    _storeCookie(globalCookies, cookie);
                                 }
                             }
                         }

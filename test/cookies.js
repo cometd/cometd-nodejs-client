@@ -183,4 +183,49 @@ describe('cookies', function() {
             xhr1.send();
         });
     });
+
+    it('handles cookies as request headers', function(done) {
+        _server = http.createServer(function(request, response) {
+            var cookies = request.headers['cookie'];
+            if (/\/1$/.test(request.url)) {
+                response.setHeader('Set-Cookie', 'a=b');
+                response.end();
+            } else if (/\/2$/.test(request.url)) {
+                assert.ok(cookies.indexOf('a=b') >= 0);
+                assert.ok(cookies.indexOf('c=d') >= 0);
+                assert.ok(cookies.indexOf('e=f') >= 0);
+                response.end();
+            } else if (/\/3$/.test(request.url)) {
+                assert.ok(cookies.indexOf('a=b') >= 0);
+                assert.ok(cookies.indexOf('c=d') < 0);
+                assert.ok(cookies.indexOf('e=f') < 0);
+                response.end();
+            }
+        });
+        _server.listen(0, 'localhost', function() {
+            var port = _server.address().port;
+            console.log('listening on localhost:' + port);
+
+            var xhr1 = new window.XMLHttpRequest();
+            xhr1.open('GET', 'http://localhost:' + port + '/1');
+            xhr1.onload = function() {
+                assert.strictEqual(xhr1.status, 200);
+                var xhr2 = new window.XMLHttpRequest();
+                xhr2.open('GET', 'http://localhost:' + port + '/2');
+                xhr2.setRequestHeader('cookie', 'c=d; e=f');
+                xhr2.onload = function() {
+                    assert.strictEqual(xhr2.status, 200);
+                    var xhr3 = new window.XMLHttpRequest();
+                    xhr3.open('GET', 'http://localhost:' + port + '/3');
+                    xhr3.onload = function() {
+                        assert.strictEqual(xhr3.status, 200);
+                        done();
+                    };
+                    xhr3.send();
+                };
+                xhr2.send();
+            };
+            xhr1.send();
+        });
+    });
 });
