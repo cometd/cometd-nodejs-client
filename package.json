@@ -22,5 +22,8 @@
   },
   "devDependencies": {
     "mocha": "*"
+  },
+  "dependencies": {
+    "ws": "^6.2.1"
   }
 }

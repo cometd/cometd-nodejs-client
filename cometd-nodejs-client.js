@@ -3,6 +3,7 @@ module.exports = {
         var url = require('url');
         var httpc = require('http');
         var https = require('https');
+        var ws = require('ws');
 
         global.window = {};
 
@@ -173,5 +174,6 @@ module.exports = {
         window.XMLHttpRequest.HEADERS_RECEIVED = 2;
         window.XMLHttpRequest.LOADING = 3;
         window.XMLHttpRequest.DONE = 4;
+        window.WebSocket = ws;
     }
 };
