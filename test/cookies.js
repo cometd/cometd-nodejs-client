@@ -3,10 +3,12 @@ var cometd = require('..');
 var http = require('http');
 
 describe('cookies', function() {
+    var _runtime;
     var _server;
 
     beforeEach(function() {
         cometd.adapt();
+        _runtime = global.cometdRuntime;
     });
 
     afterEach(function() {
@@ -31,11 +33,11 @@ describe('cookies', function() {
             console.log('listening on localhost:' + port);
             var uri = 'http://localhost:' + port;
 
-            var xhr1 = new window.XMLHttpRequest();
+            var xhr1 = new _runtime.XMLHttpRequest();
             xhr1.open('GET', uri + '/1');
             xhr1.onload = function() {
                 assert.strictEqual(xhr1.status, 200);
-                var xhr2 = new window.XMLHttpRequest();
+                var xhr2 = new _runtime.XMLHttpRequest();
                 xhr2.open('GET', uri + '/2');
                 xhr2.onload = function() {
                     assert.strictEqual(xhr2.status, 200);
@@ -68,15 +70,15 @@ describe('cookies', function() {
             console.log('listening on localhost:' + port);
             var uri = 'http://localhost:' + port;
 
-            var xhr1 = new window.XMLHttpRequest();
+            var xhr1 = new _runtime.XMLHttpRequest();
             xhr1.open('GET', uri + '/1');
             xhr1.onload = function() {
                 assert.strictEqual(xhr1.status, 200);
-                var xhr2 = new window.XMLHttpRequest();
+                var xhr2 = new _runtime.XMLHttpRequest();
                 xhr2.open('GET', uri + '/2');
                 xhr2.onload = function() {
                     assert.strictEqual(xhr2.status, 200);
-                    var xhr3 = new window.XMLHttpRequest();
+                    var xhr3 = new _runtime.XMLHttpRequest();
                     xhr3.open('GET', uri + '/3');
                     xhr3.onload = function() {
                         assert.strictEqual(xhr3.status, 200);
@@ -116,20 +118,20 @@ describe('cookies', function() {
             var port = _server.address().port;
             console.log('listening on localhost:' + port);
 
-            var xhrA1 = new window.XMLHttpRequest();
+            var xhrA1 = new _runtime.XMLHttpRequest();
             xhrA1.open('GET', 'http://localhost:' + port + '/hostA/1');
             xhrA1.onload = function() {
                 assert.strictEqual(xhrA1.status, 200);
-                var xhrA2 = new window.XMLHttpRequest();
+                var xhrA2 = new _runtime.XMLHttpRequest();
                 xhrA2.open('GET', 'http://localhost:' + port + '/hostA/2');
                 xhrA2.onload = function() {
                     assert.strictEqual(xhrA2.status, 200);
 
-                    var xhrB1 = new window.XMLHttpRequest();
+                    var xhrB1 = new _runtime.XMLHttpRequest();
                     xhrB1.open('GET', 'http://127.0.0.1:' + port + '/hostB/1');
                     xhrB1.onload = function() {
                         assert.strictEqual(xhrB1.status, 200);
-                        var xhrB2 = new window.XMLHttpRequest();
+                        var xhrB2 = new _runtime.XMLHttpRequest();
                         xhrB2.open('GET', 'http://127.0.0.1:' + port + '/hostB/2');
                         xhrB2.onload = function() {
                             assert.strictEqual(xhrB2.status, 200);
@@ -162,15 +164,15 @@ describe('cookies', function() {
             var port = _server.address().port;
             console.log('listening on localhost:' + port);
 
-            var xhr1 = new window.XMLHttpRequest();
+            var xhr1 = new _runtime.XMLHttpRequest();
             xhr1.open('GET', 'http://localhost:' + port + '/1');
             xhr1.onload = function() {
                 assert.strictEqual(xhr1.status, 200);
-                var xhr2 = new window.XMLHttpRequest();
+                var xhr2 = new _runtime.XMLHttpRequest();
                 xhr2.open('GET', 'http://localhost:' + port + '/2');
                 xhr2.onload = function() {
                     assert.strictEqual(xhr2.status, 200);
-                    var xhr3 = new window.XMLHttpRequest();
+                    var xhr3 = new _runtime.XMLHttpRequest();
                     xhr3.open('GET', 'http://localhost:' + port + '/verify');
                     xhr3.onload = function() {
                         assert.strictEqual(xhr1.status, 200);
@@ -206,16 +208,16 @@ describe('cookies', function() {
             var port = _server.address().port;
             console.log('listening on localhost:' + port);
 
-            var xhr1 = new window.XMLHttpRequest();
+            var xhr1 = new _runtime.XMLHttpRequest();
             xhr1.open('GET', 'http://localhost:' + port + '/1');
             xhr1.onload = function() {
                 assert.strictEqual(xhr1.status, 200);
-                var xhr2 = new window.XMLHttpRequest();
+                var xhr2 = new _runtime.XMLHttpRequest();
                 xhr2.open('GET', 'http://localhost:' + port + '/2');
                 xhr2.setRequestHeader('cookie', 'c=d; e=f');
                 xhr2.onload = function() {
                     assert.strictEqual(xhr2.status, 200);
-                    var xhr3 = new window.XMLHttpRequest();
+                    var xhr3 = new _runtime.XMLHttpRequest();
                     xhr3.open('GET', 'http://localhost:' + port + '/3');
                     xhr3.onload = function() {
                         assert.strictEqual(xhr3.status, 200);

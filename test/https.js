@@ -4,10 +4,12 @@ var https = require('https');
 var fs = require('fs');
 
 describe('https', function() {
+    var _runtime;
     var _server;
 
     beforeEach(function() {
         cometd.adapt();
+        _runtime = global.cometdRuntime;
     });
 
     afterEach(function() {
@@ -28,7 +30,7 @@ describe('https', function() {
             var port = _server.address().port;
             console.log('listening on localhost:' + port);
             var uri = 'https://localhost:' + port;
-            var xhr = new window.XMLHttpRequest();
+            var xhr = new _runtime.XMLHttpRequest();
             xhr.open('GET', uri + '/');
             // Allow self-signed certificates.
             xhr._config().rejectUnauthorized = false;
