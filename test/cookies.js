@@ -8,7 +8,7 @@ describe('cookies', function() {
 
     beforeEach(function() {
         cometd.adapt();
-        _runtime = global.cometdRuntime;
+        _runtime = global.window;
     });
 
     afterEach(function() {

@@ -4,14 +4,16 @@ module.exports = {
         var httpc = require('http');
         var https = require('https');
 
-        var runtime = {};
-        global.cometdRuntime = runtime;
+        var window = global['window'];
+        if (!window) {
+            window = global['window'] = {};
+        }
 
-        runtime.setTimeout = setTimeout;
-        runtime.clearTimeout = clearTimeout;
+        window.setTimeout = setTimeout;
+        window.clearTimeout = clearTimeout;
 
-        runtime.console = console;
-        runtime.console.debug = runtime.console.log;
+        window.console = console;
+        window.console.debug = window.console.log;
 
         // Fields shared by all XMLHttpRequest instances.
         var _agentc = new httpc.Agent({
@@ -27,7 +29,7 @@ module.exports = {
         }
 
         // Bare minimum XMLHttpRequest implementation that works with CometD.
-        runtime.XMLHttpRequest = function() {
+        window.XMLHttpRequest = function() {
             var _localCookies = {};
             var _config;
             var _request;
@@ -66,7 +68,7 @@ module.exports = {
 
             this.status = 0;
             this.statusText = '';
-            this.readyState = runtime.XMLHttpRequest.UNSENT;
+            this.readyState = window.XMLHttpRequest.UNSENT;
             this.responseText = '';
 
             this.open = function(method, uri) {
@@ -74,7 +76,7 @@ module.exports = {
                 _config.method = method;
                 _config.agent = _secure(_config) ? _agents : _agentc;
                 _config.headers = {};
-                this.readyState = runtime.XMLHttpRequest.OPENED;
+                this.readyState = window.XMLHttpRequest.OPENED;
             };
 
             this.setRequestHeader = function(name, value) {
@@ -104,7 +106,7 @@ module.exports = {
                     var success = false;
                     self.status = response.statusCode;
                     self.statusText = response.statusMessage;
-                    self.readyState = runtime.XMLHttpRequest.HEADERS_RECEIVED;
+                    self.readyState = window.XMLHttpRequest.HEADERS_RECEIVED;
                     var headers = response.headers;
                     for (var name in headers) {
                         if (headers.hasOwnProperty(name)) {
@@ -120,19 +122,19 @@ module.exports = {
                         }
                     }
                     response.on('data', function(chunk) {
-                        self.readyState = runtime.XMLHttpRequest.LOADING;
+                        self.readyState = window.XMLHttpRequest.LOADING;
                         self.responseText += chunk;
                     });
                     response.on('end', function() {
                         success = true;
-                        self.readyState = runtime.XMLHttpRequest.DONE;
+                        self.readyState = window.XMLHttpRequest.DONE;
                         if (self.onload) {
                             self.onload();
                         }
                     });
                     response.on('close', function() {
                         if (!success) {
-                            self.readyState = runtime.XMLHttpRequest.DONE;
+                            self.readyState = window.XMLHttpRequest.DONE;
                             if (self.onerror) {
                                 self.onerror();
                             }
@@ -141,7 +143,7 @@ module.exports = {
                 });
                 ['abort', 'aborted', 'error'].forEach(function(event) {
                     _request.on(event, function(x) {
-                        self.readyState = runtime.XMLHttpRequest.DONE;
+                        self.readyState = window.XMLHttpRequest.DONE;
                         if (x) {
                             var error = x.message;
                             if (error) {
@@ -169,10 +171,10 @@ module.exports = {
                 return _config;
             };
         };
-        runtime.XMLHttpRequest.UNSENT = 0;
-        runtime.XMLHttpRequest.OPENED = 1;
-        runtime.XMLHttpRequest.HEADERS_RECEIVED = 2;
-        runtime.XMLHttpRequest.LOADING = 3;
-        runtime.XMLHttpRequest.DONE = 4;
+        window.XMLHttpRequest.UNSENT = 0;
+        window.XMLHttpRequest.OPENED = 1;
+        window.XMLHttpRequest.HEADERS_RECEIVED = 2;
+        window.XMLHttpRequest.LOADING = 3;
+        window.XMLHttpRequest.DONE = 4;
     }
 };
