@@ -1,5 +1,5 @@
 module.exports = {
-    adapt: function() {
+    adapt: function(options) {
         var url = require('url');
         var httpc = require('http');
         var https = require('https');
@@ -16,12 +16,14 @@ module.exports = {
         window.console.debug = window.console.log;
 
         // Fields shared by all XMLHttpRequest instances.
-        var _agentc = new httpc.Agent({
+        var _agentOptions = {
             keepAlive: true
-        });
-        var _agents = new https.Agent({
-            keepAlive: true
-        });
+        };
+        var _agentc = new httpc.Agent(_agentOptions);
+        var _agents = new https.Agent(_agentOptions);
+        var HttpcProxyAgent = require('http-proxy-agent');
+        var HttpsProxyAgent = require('https-proxy-agent');
+
         var _globalCookies = {};
 
         function _secure(uri) {
@@ -66,6 +68,40 @@ module.exports = {
                 return cookies;
             }
 
+            function _chooseAgent(serverURI) {
+                var serverHostPort = serverURI.host;
+                var proxy = options && options.httpProxy && options.httpProxy.uri;
+                if (proxy) {
+                    var isIncluded = true;
+                    var includes = options.httpProxy.includes;
+                    if (includes && Array.isArray(includes)) {
+                        isIncluded = false;
+                        for (var i = 0; i < includes.length; ++i) {
+                            if (new RegExp(includes[i]).test(serverHostPort)) {
+                                isIncluded = true;
+                                break;
+                            }
+                        }
+                    }
+                    if (isIncluded) {
+                        var excludes = options.httpProxy.excludes;
+                        if (excludes && Array.isArray(excludes)) {
+                            for (var e = 0; e < excludes.length; ++e) {
+                                if (new RegExp(excludes[e]).test(serverHostPort)) {
+                                    isIncluded = false;
+                                    break;
+                                }
+                            }
+                        }
+                    }
+                    if (isIncluded) {
+                        var agentOpts = Object.assign(url.parse(proxy), _agentOptions);
+                        return _secure(serverURI) ? new HttpsProxyAgent(agentOpts) : new HttpcProxyAgent(agentOpts);
+                    }
+                }
+                return _secure(serverURI) ? _agents : _agentc;
+            }
+
             this.status = 0;
             this.statusText = '';
             this.readyState = window.XMLHttpRequest.UNSENT;
@@ -73,8 +109,8 @@ module.exports = {
 
             this.open = function(method, uri) {
                 _config = url.parse(uri);
+                _config.agent = _chooseAgent(_config);
                 _config.method = method;
-                _config.agent = _secure(_config) ? _agents : _agentc;
                 _config.headers = {};
                 this.readyState = window.XMLHttpRequest.OPENED;
             };
