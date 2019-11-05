@@ -42,6 +42,7 @@ describe('client', function() {
             console.log('listening on localhost:' + port);
 
             var cometd = new _lib.CometD();
+            cometd.websocketEnabled = false;
             cometd.configure({
                 url: 'http://localhost:' + port + '/cometd',
                 logLevel: 'info'

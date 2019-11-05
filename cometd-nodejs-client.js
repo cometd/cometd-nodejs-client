@@ -5,6 +5,7 @@ module.exports = {
         var https = require('https');
         var HttpcProxyAgent = require('http-proxy-agent');
         var HttpsProxyAgent = require('https-proxy-agent');
+        var ws = require('ws');
 
         var window = global['window'];
         if (!window) {
@@ -221,5 +222,7 @@ module.exports = {
         window.XMLHttpRequest.HEADERS_RECEIVED = 2;
         window.XMLHttpRequest.LOADING = 3;
         window.XMLHttpRequest.DONE = 4;
+
+        window.WebSocket = ws;
     }
 };

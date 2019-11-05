@@ -52,6 +52,7 @@ describe('proxy', function() {
             // Any port will do for the server.
             var serverPort = proxyPort + 1;
             var cometd = new _lib.CometD();
+            cometd.websocketEnabled = false;
             cometd.configure({
                 url: 'http://localhost:' + serverPort + '/cometd',
                 logLevel: 'info'
@@ -108,6 +109,7 @@ describe('proxy', function() {
             });
 
             var cometd1 = new _lib.CometD();
+            cometd1.websocketEnabled = false;
             cometd1.configure({
                 url: 'http://localhost:' + serverPort1 + '/cometd',
                 logLevel: 'info'
@@ -115,6 +117,7 @@ describe('proxy', function() {
             cometd1.handshake(function(r) {
                 if (r.successful) {
                     var cometd2 = new _lib.CometD();
+                    cometd2.websocketEnabled = false;
                     cometd2.configure({
                         url: 'http://localhost:' + serverPort2 + '/cometd',
                         logLevel: 'info'
@@ -176,6 +179,7 @@ describe('proxy', function() {
             });
 
             var cometd1 = new _lib.CometD();
+            cometd1.websocketEnabled = false;
             cometd1.configure({
                 url: 'http://localhost:' + serverPort1 + '/cometd',
                 logLevel: 'info'
@@ -187,6 +191,7 @@ describe('proxy', function() {
                     // Stop /meta/handshake retries.
                     cometd1.disconnect();
                     var cometd2 = new _lib.CometD();
+                    cometd2.websocketEnabled = false;
                     cometd2.configure({
                         url: 'http://localhost:' + serverPort2 + '/cometd',
                         logLevel: 'info'
@@ -246,6 +251,7 @@ describe('proxy', function() {
             });
 
             var cometd1 = new _lib.CometD();
+            cometd1.websocketEnabled = false;
             cometd1.configure({
                 url: 'http://localhost:' + serverPort1 + '/cometd',
                 logLevel: 'info'
@@ -257,6 +263,7 @@ describe('proxy', function() {
                     // Stop /meta/handshake retries.
                     cometd1.disconnect();
                     var cometd2 = new _lib.CometD();
+                    cometd2.websocketEnabled = false;
                     cometd2.configure({
                         url: 'http://localhost:' + serverPort2 + '/cometd',
                         logLevel: 'info'
@@ -313,6 +320,7 @@ describe('proxy', function() {
             // Any port will do for the server.
             var serverPort = proxyPort + 1;
             var cometd = new _lib.CometD();
+            cometd.websocketEnabled = false;
             cometd.configure({
                 url: 'http://localhost:' + serverPort + '/cometd',
                 logLevel: 'info'
