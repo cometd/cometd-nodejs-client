@@ -3,6 +3,8 @@ module.exports = {
         var url = require('url');
         var httpc = require('http');
         var https = require('https');
+        var HttpcProxyAgent = require('http-proxy-agent');
+        var HttpsProxyAgent = require('https-proxy-agent');
 
         var window = global['window'];
         if (!window) {
@@ -21,10 +23,16 @@ module.exports = {
         };
         var _agentc = new httpc.Agent(_agentOptions);
         var _agents = new https.Agent(_agentOptions);
-        var HttpcProxyAgent = require('http-proxy-agent');
-        var HttpsProxyAgent = require('https-proxy-agent');
 
         var _globalCookies = {};
+
+        var _logLevel = options && options.logLevel || 'info';
+
+        function _debug() {
+            if (_logLevel === 'debug') {
+                console.log.apply(this, Array.from(arguments));
+            }
+        }
 
         function _secure(uri) {
             return /^https/i.test(uri.protocol);
@@ -95,6 +103,7 @@ module.exports = {
                         }
                     }
                     if (isIncluded) {
+                        _debug('proxying', serverURI.href, 'via', proxy);
                         var agentOpts = Object.assign(url.parse(proxy), _agentOptions);
                         return _secure(serverURI) ? new HttpsProxyAgent(agentOpts) : new HttpcProxyAgent(agentOpts);
                     }

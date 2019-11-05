@@ -43,6 +43,7 @@ describe('proxy', function() {
             console.log('proxy listening on localhost:' + proxyPort);
 
             nodeCometD.adapt({
+                logLevel: 'debug',
                 httpProxy: {
                     uri: 'http://localhost:' + proxyPort
                 }
