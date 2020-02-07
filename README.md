@@ -6,7 +6,7 @@ This project implements adapter code that allows the [CometD JavaScript Client](
 
 The adapter code exports an implementation of `XMLHttpRequest` so that the CometD JavaScript Client works in NodeJS as it does within a browser environment.
 
-WebSocket is not (yet) supported.
+WebSocket is supported via the [`ws`](https://www.npmjs.com/package/ws) package.
 
 ### NPM Installation
 
