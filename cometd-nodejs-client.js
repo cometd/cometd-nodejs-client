@@ -1,13 +1,30 @@
-module.exports = {
-    adapt: function(options) {
-        var url = require('url');
-        var httpc = require('http');
-        var https = require('https');
-        var HttpcProxyAgent = require('http-proxy-agent');
-        var HttpsProxyAgent = require('https-proxy-agent');
-        var ws = require('ws');
+/*
+ * Copyright (c) 2017-2020 the original author or authors.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+'use strict';
 
-        var window = global['window'];
+module.exports = {
+    adapt: options => {
+        const url = require('url');
+        const httpc = require('http');
+        const https = require('https');
+        const HttpcProxyAgent = require('http-proxy-agent');
+        const HttpsProxyAgent = require('https-proxy-agent');
+        const ws = require('ws');
+
+        let window = global['window'];
         if (!window) {
             window = global['window'] = {};
         }
@@ -19,15 +36,15 @@ module.exports = {
         window.console.debug = window.console.log;
 
         // Fields shared by all XMLHttpRequest instances.
-        var _agentOptions = {
+        const _agentOptions = {
             keepAlive: true
         };
-        var _agentc = new httpc.Agent(_agentOptions);
-        var _agents = new https.Agent(_agentOptions);
+        const _agentc = new httpc.Agent(_agentOptions);
+        const _agents = new https.Agent(_agentOptions);
 
-        var _globalCookies = {};
+        const _globalCookies = {};
 
-        var _logLevel = options && options.logLevel || 'info';
+        const _logLevel = options && options.logLevel || 'info';
 
         function _debug() {
             if (_logLevel === 'debug') {
@@ -41,20 +58,20 @@ module.exports = {
 
         // Bare minimum XMLHttpRequest implementation that works with CometD.
         window.XMLHttpRequest = function() {
-            var _localCookies = {};
-            var _config;
-            var _request;
+            const _localCookies = {};
+            let _config;
+            let _request;
 
             function _storeCookie(cookieStore, value) {
-                var host = _config.hostname;
-                var jar = cookieStore[host];
+                const host = _config.hostname;
+                let jar = cookieStore[host];
                 if (jar === undefined) {
                     cookieStore[host] = jar = {};
                 }
-                var cookies = value.split(';');
-                for (var i = 0; i < cookies.length; ++i) {
-                    var cookie = cookies[i].trim();
-                    var equal = cookie.indexOf('=');
+                const cookies = value.split(';');
+                for (let i = 0; i < cookies.length; ++i) {
+                    const cookie = cookies[i].trim();
+                    const equal = cookie.indexOf('=');
                     if (equal > 0) {
                         jar[cookie.substring(0, equal)] = cookie;
                     }
@@ -62,10 +79,10 @@ module.exports = {
             }
 
             function _concatCookies(cookieStore) {
-                var cookies = '';
-                var jar = cookieStore[_config.hostname];
+                let cookies = '';
+                const jar = cookieStore[_config.hostname];
                 if (jar) {
-                    for (var name in jar) {
+                    for (let name in jar) {
                         if (jar.hasOwnProperty(name)) {
                             if (cookies) {
                                 cookies += '; ';
@@ -78,14 +95,14 @@ module.exports = {
             }
 
             function _chooseAgent(serverURI) {
-                var serverHostPort = serverURI.host;
-                var proxy = options && options.httpProxy && options.httpProxy.uri;
+                const serverHostPort = serverURI.host;
+                const proxy = options && options.httpProxy && options.httpProxy.uri;
                 if (proxy) {
-                    var isIncluded = true;
-                    var includes = options.httpProxy.includes;
+                    let isIncluded = true;
+                    const includes = options.httpProxy.includes;
                     if (includes && Array.isArray(includes)) {
                         isIncluded = false;
-                        for (var i = 0; i < includes.length; ++i) {
+                        for (let i = 0; i < includes.length; ++i) {
                             if (new RegExp(includes[i]).test(serverHostPort)) {
                                 isIncluded = true;
                                 break;
@@ -93,9 +110,9 @@ module.exports = {
                         }
                     }
                     if (isIncluded) {
-                        var excludes = options.httpProxy.excludes;
+                        const excludes = options.httpProxy.excludes;
                         if (excludes && Array.isArray(excludes)) {
-                            for (var e = 0; e < excludes.length; ++e) {
+                            for (let e = 0; e < excludes.length; ++e) {
                                 if (new RegExp(excludes[e]).test(serverHostPort)) {
                                     isIncluded = false;
                                     break;
@@ -105,7 +122,7 @@ module.exports = {
                     }
                     if (isIncluded) {
                         _debug('proxying', serverURI.href, 'via', proxy);
-                        var agentOpts = Object.assign(url.parse(proxy), _agentOptions);
+                        const agentOpts = Object.assign(url.parse(proxy), _agentOptions);
                         return _secure(serverURI) ? new HttpsProxyAgent(agentOpts) : new HttpcProxyAgent(agentOpts);
                     }
                 }
@@ -117,7 +134,7 @@ module.exports = {
             this.readyState = window.XMLHttpRequest.UNSENT;
             this.responseText = '';
 
-            this.open = function(method, uri) {
+            this.open = (method, uri) => {
                 _config = url.parse(uri);
                 _config.agent = _chooseAgent(_config);
                 _config.method = method;
@@ -125,7 +142,7 @@ module.exports = {
                 this.readyState = window.XMLHttpRequest.OPENED;
             };
 
-            this.setRequestHeader = function(name, value) {
+            this.setRequestHeader = (name, value) => {
                 if (/^cookie$/i.test(name)) {
                     _storeCookie(_localCookies, value)
                 } else {
@@ -133,71 +150,70 @@ module.exports = {
                 }
             };
 
-            this.send = function(data) {
-                var globalCookies = this.context && this.context.cookieStore;
+            this.send = data => {
+                let globalCookies = this.context && this.context.cookieStore;
                 if (!globalCookies) {
                     globalCookies = _globalCookies;
                 }
-                var cookies1 = _concatCookies(globalCookies);
-                var cookies2 = _concatCookies(_localCookies);
-                var delim = (cookies1 && cookies2) ? '; ' : '';
-                var cookies = cookies1 + delim + cookies2;
+                const cookies1 = _concatCookies(globalCookies);
+                const cookies2 = _concatCookies(_localCookies);
+                const delim = (cookies1 && cookies2) ? '; ' : '';
+                const cookies = cookies1 + delim + cookies2;
                 if (cookies) {
                     _config.headers['Cookie'] = cookies;
                 }
 
-                var self = this;
-                var http = _secure(_config) ? https : httpc;
-                _request = http.request(_config, function(response) {
-                    var success = false;
-                    self.status = response.statusCode;
-                    self.statusText = response.statusMessage;
-                    self.readyState = window.XMLHttpRequest.HEADERS_RECEIVED;
-                    var headers = response.headers;
-                    for (var name in headers) {
+                const http = _secure(_config) ? https : httpc;
+                _request = http.request(_config, response => {
+                    let success = false;
+                    this.status = response.statusCode;
+                    this.statusText = response.statusMessage;
+                    this.readyState = window.XMLHttpRequest.HEADERS_RECEIVED;
+                    const headers = response.headers;
+                    for (let name in headers) {
                         if (headers.hasOwnProperty(name)) {
                             if (/^set-cookie$/i.test(name)) {
-                                var header = headers[name];
-                                for (var i = 0; i < header.length; ++i) {
-                                    var whole = header[i];
-                                    var parts = whole.split(';');
-                                    var cookie = parts[0];
+                                const header = headers[name];
+                                for (let i = 0; i < header.length; ++i) {
+                                    const whole = header[i];
+                                    const parts = whole.split(';');
+                                    const cookie = parts[0];
                                     _storeCookie(globalCookies, cookie);
                                 }
                             }
                         }
                     }
-                    response.on('data', function(chunk) {
-                        self.readyState = window.XMLHttpRequest.LOADING;
-                        self.responseText += chunk;
+                    response.on('data', chunk => {
+                        this.readyState = window.XMLHttpRequest.LOADING;
+                        this.responseText += chunk;
                     });
-                    response.on('end', function() {
+                    response.on('end', () => {
                         success = true;
-                        self.readyState = window.XMLHttpRequest.DONE;
-                        if (self.onload) {
-                            self.onload();
+                        this.readyState = window.XMLHttpRequest.DONE;
+                        if (this.onload) {
+                            this.onload();
                         }
                     });
-                    response.on('close', function() {
+                    response.on('close', () => {
                         if (!success) {
-                            self.readyState = window.XMLHttpRequest.DONE;
-                            if (self.onerror) {
-                                self.onerror();
+                            this.readyState = window.XMLHttpRequest.DONE;
+                            if (this.onerror) {
+                                this.onerror();
                             }
                         }
                     });
                 });
-                ['abort', 'aborted', 'error'].forEach(function(event) {
-                    _request.on(event, function(x) {
-                        self.readyState = window.XMLHttpRequest.DONE;
+                ['abort', 'aborted', 'error'].forEach(event => {
+                    _request.on(event, x => {
+                        this.readyState = window.XMLHttpRequest.DONE;
                         if (x) {
-                            var error = x.message;
+                            const error = x.message;
                             if (error) {
-                                self.statusText = error;
+                                this.statusText = error;
                             }
                         }
-                        if (self.onerror) {
-                            self.onerror(x);
+                        if (this.onerror) {
+                            this.onerror(x);
                         }
                     });
                 });
@@ -207,15 +223,13 @@ module.exports = {
                 _request.end();
             };
 
-            this.abort = function() {
+            this.abort = () => {
                 if (_request) {
                     _request.abort();
                 }
             };
 
-            this._config = function() {
-                return _config;
-            };
+            this._config = () => _config;
         };
         window.XMLHttpRequest.UNSENT = 0;
         window.XMLHttpRequest.OPENED = 1;

@@ -1,25 +1,42 @@
-var assert = require('assert');
-var nodeCometD = require('..');
-var ws = require("ws");
+/*
+ * Copyright (c) 2017-2020 the original author or authors.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+'use strict';
 
-describe('websocket', function() {
-    var _lib = require('cometd');
-    var _server;
+const assert = require('assert');
+const nodeCometD = require('..');
+const ws = require("ws");
 
-    afterEach(function() {
+describe('websocket', () => {
+    const _lib = require('cometd');
+    let _server;
+
+    afterEach(() => {
         if (_server) {
             _server.close();
         }
     });
 
-    it('handshakes with websocket', function(done) {
-        _server = new ws.Server({port: 0}, function() {
-            _server.on('connection', function(s) {
-                s.on('message', function(m) {
-                    var handshake = JSON.parse(m)[0];
+    it('handshakes with websocket', done => {
+        _server = new ws.Server({port: 0}, () => {
+            _server.on('connection', s => {
+                s.on('message', m => {
+                    const handshake = JSON.parse(m)[0];
                     assert.strictEqual('/meta/handshake', handshake.channel);
                     assert.ok(handshake.supportedConnectionTypes.indexOf('websocket') >= 0);
-                    var reply = [{
+                    const reply = [{
                         id: handshake.id,
                         channel: handshake.channel,
                         successful: true,
@@ -35,12 +52,12 @@ describe('websocket', function() {
             });
 
             nodeCometD.adapt();
-            var cometd = new _lib.CometD();
+            const cometd = new _lib.CometD();
             cometd.configure({
                 url: 'http://localhost:' + _server.address().port,
                 logLevel: 'info'
             });
-            cometd.handshake(function(r) {
+            cometd.handshake(r => {
                 if (r.successful) {
                     done();
                 } else {
