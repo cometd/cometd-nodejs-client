@@ -1,3 +1,5 @@
+![NodeJS CI](https://github.com/cometd/cometd-nodejs-client/workflows/NodeJS%20CI/badge.svg)
+
 ## The CometD Project
 
 ### CometD NodeJS Client
