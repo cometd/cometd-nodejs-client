@@ -6,7 +6,7 @@ export interface Proxy {
 
 export interface Options {
   logLevel?: "debug" | "info";
-  httpProxy: Proxy;
+  httpProxy?: Proxy;
 }
 
 export function adapt(options?: Options): void;
