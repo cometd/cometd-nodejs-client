@@ -26,7 +26,7 @@ Therefore, you need to install the CometD JavaScript Client, version 3.1.2 or gr
 npm install cometd
 ```
 
-### Usage
+### Usage (CommonJS)
 
 ```javascript
 // Run the adapter code that implements XMLHttpRequest.
@@ -36,6 +36,18 @@ require('cometd-nodejs-client').adapt();
 var lib = require('cometd');
 var cometd = new lib.CometD();
 ...
+```
+
+### Usage (ES Modules)
+
+```javascript
+import { CometD } from 'cometd';
+import { adapt } from 'cometd-nodejs-client';
+// Shim XMLHTTPRequest for Node.js (required by CometD).
+adapt();
+
+// Your normal CometD client application here.
+const client = new CometD();
 ```
 
 See [here](https://github.com/cometd/cometd-javascript/blob/master/README.md) for an example CometD client application.
