@@ -1,0 +1,11 @@
+{
+  "compilerOptions": {
+    "target": "ES6",
+    "module": "CommonJS",
+    "outDir": "test",
+    "strict": true,
+    "noImplicitAny": true
+  },
+  "include": ["test/*.ts"],
+  "exclude": []
+}

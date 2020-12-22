@@ -20,7 +20,7 @@ export interface HttpProxy {
 }
 
 export interface Options {
-  logLevel?: "debug" | "info";
+  logLevel?: 'debug' | 'info';
   httpProxy?: HttpProxy;
 }
 
