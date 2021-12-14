@@ -19,9 +19,15 @@ export interface HttpProxy {
   excludes?: string[];
 }
 
+export interface Cookies {
+    storeCookie?(uri: any, header: string, callback: (failure: Error | null, cookie: any) => void): void;
+    retrieveCookies?(context: any, uri: any, callback: (failure: Error | null, cookies: string[]) => void): void;
+}
+
 export interface Options {
   logLevel?: 'debug' | 'info';
   httpProxy?: HttpProxy;
+  cookies?: Cookies;
 }
 
 export function adapt(options?: Options): void;

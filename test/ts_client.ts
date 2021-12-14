@@ -13,17 +13,16 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import nodeCometD = require('..');
-import http = require('http');
+import * as nodeCometD from '..';
+import * as jsCometD from 'cometd';
+import * as http from 'http';
 import {AddressInfo} from 'net';
 
 describe('typescript client', () => {
-    let _cometd: any;
     let _server: http.Server;
 
     beforeEach(() => {
         nodeCometD.adapt();
-        _cometd = require('cometd');
     });
 
     afterEach(() => {
@@ -57,13 +56,13 @@ describe('typescript client', () => {
             const port = (_server.address() as AddressInfo).port
             console.log('listening on localhost:' + port);
 
-            const cometd = new _cometd.CometD();
+            const cometd: jsCometD.CometD = new jsCometD.CometD();
             cometd.websocketEnabled = false;
             cometd.configure({
                 url: 'http://localhost:' + port + '/cometd',
                 logLevel: 'info'
             });
-            cometd.handshake((r: any) => {
+            cometd.handshake((r: jsCometD.Message) => {
                 if (r.successful) {
                     done();
                 }

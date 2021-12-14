@@ -56,17 +56,82 @@ module.exports = {
             return /^https/i.test(uri.protocol);
         }
 
+        function _storeServerCookie(uri, header, callback) {
+            if (options && options.cookies && options.cookies.storeCookie) {
+                options.cookies.storeCookie(uri, header, callback);
+            } else {
+                const host = uri.hostname;
+                let jar = _globalCookies[host];
+                if (jar === undefined) {
+                    _globalCookies[host] = jar = {};
+                }
+                const parts = header.split(';');
+                // Ignore domain, path, expiration, etc.
+                const nameValue = parts[0].trim();
+                const equal = nameValue.indexOf('=');
+                if (equal > 0) {
+                    const name = nameValue.substring(0, equal);
+                    jar[name] = nameValue;
+                }
+                callback();
+            }
+        }
+
+        function _retrieveServerCookies(context, uri, callback) {
+            if (options && options.cookies && options.cookies.retrieveCookies) {
+                options.cookies.retrieveCookies(context, uri, callback);
+            } else {
+                let globalCookies = context && context.cookieStore;
+                if (!globalCookies) {
+                    globalCookies = _globalCookies;
+                }
+                let cookies = [];
+                const jar = globalCookies[uri.hostname];
+                if (jar) {
+                    for (let name in jar) {
+                        if (jar.hasOwnProperty(name)) {
+                            cookies.push(jar[name]);
+                        }
+                    }
+                }
+                callback(null, cookies);
+            }
+        }
+
+        function _asyncForEach(array, index, operation, callback) {
+            while (index < array.length) {
+                let complete = false;
+                let proceed = false;
+                operation(array[index], () => {
+                    complete = true;
+                    if (proceed) {
+                        ++index;
+                        _asyncForEach(array, index, operation, callback);
+                    }
+                });
+                if (complete) {
+                    ++index;
+                } else {
+                    proceed = true;
+                    break;
+                }
+            }
+            if (index === array.length) {
+                callback();
+            }
+        }
+
         // Bare minimum XMLHttpRequest implementation that works with CometD.
         window.XMLHttpRequest = function() {
             const _localCookies = {};
             let _config;
             let _request;
 
-            function _storeCookie(cookieStore, value) {
+            function _storeCookie(value) {
                 const host = _config.hostname;
-                let jar = cookieStore[host];
+                let jar = _localCookies[host];
                 if (jar === undefined) {
-                    cookieStore[host] = jar = {};
+                    _localCookies[host] = jar = {};
                 }
                 const cookies = value.split(';');
                 for (let i = 0; i < cookies.length; ++i) {
@@ -78,16 +143,13 @@ module.exports = {
                 }
             }
 
-            function _concatCookies(cookieStore) {
-                let cookies = '';
-                const jar = cookieStore[_config.hostname];
+            function _retrieveCookies() {
+                const cookies = [];
+                const jar = _localCookies[_config.hostname];
                 if (jar) {
                     for (let name in jar) {
                         if (jar.hasOwnProperty(name)) {
-                            if (cookies) {
-                                cookies += '; ';
-                            }
-                            cookies += jar[name];
+                            cookies.push(jar[name]);
                         }
                     }
                 }
@@ -144,83 +206,81 @@ module.exports = {
 
             this.setRequestHeader = (name, value) => {
                 if (/^cookie$/i.test(name)) {
-                    _storeCookie(_localCookies, value)
+                    _storeCookie(value);
                 } else {
                     _config.headers[name] = value;
                 }
             };
 
             this.send = data => {
-                let globalCookies = this.context && this.context.cookieStore;
-                if (!globalCookies) {
-                    globalCookies = _globalCookies;
-                }
-                const cookies1 = _concatCookies(globalCookies);
-                const cookies2 = _concatCookies(_localCookies);
-                const delim = (cookies1 && cookies2) ? '; ' : '';
-                const cookies = cookies1 + delim + cookies2;
-                if (cookies) {
-                    _config.headers['Cookie'] = cookies;
-                }
+                _retrieveServerCookies(this.context, _config, (x, cookies) => {
+                    const cookies1 = x ? '' : cookies.join('; ');
+                    const cookies2 = _retrieveCookies().join('; ');
+                    const delim = (cookies1 && cookies2) ? '; ' : '';
+                    const allCookies = cookies1 + delim + cookies2;
+                    if (allCookies) {
+                        _config.headers['Cookie'] = allCookies;
+                    }
 
-                const http = _secure(_config) ? https : httpc;
-                _request = http.request(_config, response => {
-                    let success = false;
-                    this.status = response.statusCode;
-                    this.statusText = response.statusMessage;
-                    this.readyState = window.XMLHttpRequest.HEADERS_RECEIVED;
-                    const headers = response.headers;
-                    for (let name in headers) {
-                        if (headers.hasOwnProperty(name)) {
-                            if (/^set-cookie$/i.test(name)) {
-                                const header = headers[name];
-                                for (let i = 0; i < header.length; ++i) {
-                                    const whole = header[i];
-                                    const parts = whole.split(';');
-                                    const cookie = parts[0];
-                                    _storeCookie(globalCookies, cookie);
+                    const http = _secure(_config) ? https : httpc;
+                    _request = http.request(_config, response => {
+                        let success = false;
+                        this.status = response.statusCode;
+                        this.statusText = response.statusMessage;
+                        this.readyState = window.XMLHttpRequest.HEADERS_RECEIVED;
+                        const setCookies = [];
+                        const headers = response.headers;
+                        for (let name in headers) {
+                            if (headers.hasOwnProperty(name)) {
+                                if (/^set-cookie$/i.test(name)) {
+                                    const header = headers[name];
+                                    setCookies.push.apply(setCookies, header);
                                 }
                             }
                         }
-                    }
-                    response.on('data', chunk => {
-                        this.readyState = window.XMLHttpRequest.LOADING;
-                        this.responseText += chunk;
+                        _asyncForEach(setCookies, 0, (element, callback) => {
+                            _storeServerCookie(_config, element, callback);
+                        }, () => {
+                            response.on('data', chunk => {
+                                this.readyState = window.XMLHttpRequest.LOADING;
+                                this.responseText += chunk;
+                            });
+                            response.on('end', () => {
+                                success = true;
+                                this.readyState = window.XMLHttpRequest.DONE;
+                                if (this.onload) {
+                                    this.onload();
+                                }
+                            });
+                            response.on('close', () => {
+                                if (!success) {
+                                    this.readyState = window.XMLHttpRequest.DONE;
+                                    if (this.onerror) {
+                                        this.onerror();
+                                    }
+                                }
+                            });
+                        });
                     });
-                    response.on('end', () => {
-                        success = true;
-                        this.readyState = window.XMLHttpRequest.DONE;
-                        if (this.onload) {
-                            this.onload();
-                        }
-                    });
-                    response.on('close', () => {
-                        if (!success) {
+                    ['abort', 'aborted', 'error'].forEach(event => {
+                        _request.on(event, x => {
                             this.readyState = window.XMLHttpRequest.DONE;
+                            if (x) {
+                                const error = x.message;
+                                if (error) {
+                                    this.statusText = error;
+                                }
+                            }
                             if (this.onerror) {
-                                this.onerror();
+                                this.onerror(x);
                             }
-                        }
+                        });
                     });
+                    if (data) {
+                        _request.write(data);
+                    }
+                    _request.end();
                 });
-                ['abort', 'aborted', 'error'].forEach(event => {
-                    _request.on(event, x => {
-                        this.readyState = window.XMLHttpRequest.DONE;
-                        if (x) {
-                            const error = x.message;
-                            if (error) {
-                                this.statusText = error;
-                            }
-                        }
-                        if (this.onerror) {
-                            this.onerror(x);
-                        }
-                    });
-                });
-                if (data) {
-                    _request.write(data);
-                }
-                _request.end();
             };
 
             this.abort = () => {
