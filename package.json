@@ -28,12 +28,12 @@
     "ws": ">=7.2.0"
   },
   "devDependencies": {
-    "@types/mocha": "latest",
-    "@types/node": "latest",
+    "@types/mocha": ">=10.0.0",
+    "@types/node": ">=16.0.0",
     "@types/tough-cookie": "^4.0.1",
-    "mocha": "latest",
-    "tough-cookie": "latest",
-    "ts-node": "latest",
-    "typescript": "latest"
+    "mocha": ">=10.2.0",
+    "tough-cookie": "^4.0.0",
+    "ts-node": ">=10.9.0",
+    "typescript": ">=5.0.0"
   }
 }
