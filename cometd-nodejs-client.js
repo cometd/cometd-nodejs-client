@@ -20,8 +20,8 @@ module.exports = {
         const url = require('url');
         const httpc = require('http');
         const https = require('https');
-        const HttpcProxyAgent = require('http-proxy-agent');
-        const HttpsProxyAgent = require('https-proxy-agent');
+        const httpcProxyAgent = require('http-proxy-agent');
+        const httpsProxyAgent = require('https-proxy-agent');
         const ws = require('ws');
 
         let window = global['window'];
@@ -184,8 +184,8 @@ module.exports = {
                     }
                     if (isIncluded) {
                         _debug('proxying', serverURI.href, 'via', proxy);
-                        const agentOpts = Object.assign(new url.URL(proxy), _agentOptions);
-                        return _secure(serverURI) ? new HttpsProxyAgent(agentOpts) : new HttpcProxyAgent(agentOpts);
+                        const agentOpts = Object.assign({}, _agentOptions);
+                        return _secure(serverURI) ? new httpsProxyAgent.HttpsProxyAgent(proxy, agentOpts) : new httpcProxyAgent.HttpProxyAgent(proxy, agentOpts);
                     }
                 }
                 return _secure(serverURI) ? _agents : _agentc;
