@@ -259,7 +259,7 @@ describe('cookies', () => {
                 storeCookie(uri: any, header: string, callback: (failure: Error | null, cookie: any) => void) {
                     const cookie = tough.Cookie.parse(header);
                     if (cookie) {
-                        cookieJar.setCookie(cookie, uri,
+                        cookieJar.setCookie(cookie, uri.toString(),
                             // Test both sync and async callbacks.
                             header.startsWith('a=1') ? callback : () => setTimeout(callback, 0));
                     } else {
@@ -267,7 +267,7 @@ describe('cookies', () => {
                     }
                 },
                 retrieveCookies(context: any, uri: any, callback: (failure: Error | null, cookies: string[]) => void) {
-                    cookieJar.getCookies(uri, (x: any, r: tough.Cookie[]) => {
+                    cookieJar.getCookies(uri.toString(), (x: any, r: tough.Cookie[]) => {
                         const result: string[] = x ? [] : r.map(c => c.cookieString());
                         callback(x, result);
                     });
