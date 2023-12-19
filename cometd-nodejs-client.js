@@ -184,7 +184,7 @@ module.exports = {
                     }
                     if (isIncluded) {
                         _debug('proxying', serverURI.href, 'via', proxy);
-                        const agentOpts = Object.assign(url.parse(proxy), _agentOptions);
+                        const agentOpts = Object.assign(new url.URL(proxy), _agentOptions);
                         return _secure(serverURI) ? new HttpsProxyAgent(agentOpts) : new HttpcProxyAgent(agentOpts);
                     }
                 }
@@ -197,7 +197,7 @@ module.exports = {
             this.responseText = '';
 
             this.open = (method, uri) => {
-                _config = url.parse(uri);
+                _config = new url.URL(uri);
                 _config.agent = _chooseAgent(_config);
                 _config.method = method;
                 _config.headers = {};
